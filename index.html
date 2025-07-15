@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🦇 Batman's Card Trick</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
+
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+      color: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem;
+    }
+    h1 {
+      color: #fdd835;
+      text-shadow: 2px 2px #000;
+      text-align: center;
+      font-size: 2rem;
+    }
+    p {
+      text-align: center;
+    }
+    .card-grid {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin: 1.5rem 0;
+      width: 100%;
+      max-width: 500px;
+    }
+    .card-column {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      flex: 1;
+    }
+    .card {
+      padding: 0.5rem;
+      border: 1px solid #444;
+      border-radius: 5px;
+      background: #212121;
+      text-align: center;
+      font-size: 1.25rem;
+      min-width: 60px;
+      box-shadow: 0 0 10px rgba(255, 235, 59, 0.3);
+    }
+    .buttons {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    button {
+      background: #fdd835;
+      color: #000;
+      border: none;
+      padding: 0.75rem 1.25rem;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1rem;
+      margin: 0.5rem;
+      box-shadow: 0 0 8px rgba(255, 235, 59, 0.6);
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #ffee58;
+    }
+    #result {
+      margin-top: 1.5rem;
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #fdd835;
+      text-shadow: 2px 2px #000;
+      animation: fadeIn 1s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .bat-logo {
+      width: 80px;
+      margin-bottom: 1rem;
+    }
+    #thinking {
+      font-size: 1.5rem;
+      color: #888;
+      margin-top: 1rem;
+      animation: blink 1s step-start 0s infinite;
+    }
+    @keyframes blink {
+      50% { opacity: 0.2; }
+    }
+  </style>
+</head>
+<body>
+  <img class="bat-logo" src="https://cdn.freebiesupply.com/logos/large/2x/batman-01-logo-png-transparent.png" alt="Bat Logo">
+  <h1>🦇 Batman's Card Trick</h1>
+  <p>Pick a card in your mind... Tell the Dark Knight which column it’s in after each shuffle.</p>
+
+  <div id="card-grid" class="card-grid"></div>
+
+  <div class="buttons">
+    <p style="width: 100%; text-align: center;">Which column is your card in?</p>
+    <button onclick="chooseColumn(0)">Column 1</button>
+    <button onclick="chooseColumn(1)">Column 2</button>
+    <button onclick="chooseColumn(2)">Column 3</button>
+  </div>
+
+  <p id="thinking"></p>
+  <p id="result"></p>
+
+  <div class="buttons" id="play-again" style="display:none">
+    <button onclick="startOver()">Play Again</button>
+  </div>
+
+  <script>
+    let originalCards = [
+      "2♣", "5♦", "7♠", "10♥", "Q♣", "3♠", "J♦",
+      "4♥", "6♠", "9♦", "K♣", "5♣", "8♥", "A♠",
+      "3♦", "7♥", "Q♠", "6♦", "K♠", "9♣", "10♠"
+    ];
+    let cardSet = [];
+    let rounds = 0;
+
+    function shuffleAndStart() {
+      cardSet = [...originalCards];
+      for (let i = cardSet.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [cardSet[i], cardSet[j]] = [cardSet[j], cardSet[i]];
+      }
+      rounds = 0;
+      document.getElementById("result").textContent = "";
+      document.getElementById("thinking").textContent = "";
+      document.getElementById("play-again").style.display = "none";
+      renderCards();
+    }
+
+    function dealIntoColumns(cards) {
+      let columns = [[], [], []];
+      for (let i = 0; i < cards.length; i++) {
+        columns[i % 3].push(cards[i]);
+      }
+      return columns;
+    }
+
+    function combineColumns(columns, selectedIndex) {
+      if (selectedIndex === 0) {
+        return columns[1].concat(columns[0], columns[2]);
+      } else if (selectedIndex === 1) {
+        return columns[0].concat(columns[1], columns[2]);
+      } else {
+        return columns[0].concat(columns[2], columns[1]);
+      }
+    }
+
+    function renderCards() {
+      const grid = document.getElementById("card-grid");
+      grid.innerHTML = "";
+      const columns = dealIntoColumns(cardSet);
+      for (let col of columns) {
+        const colDiv = document.createElement("div");
+        colDiv.className = "card-column";
+        for (let card of col) {
+          const cardDiv = document.createElement("div");
+          cardDiv.className = "card";
+          cardDiv.textContent = card;
+          colDiv.appendChild(cardDiv);
+        }
+        grid.appendChild(colDiv);
+      }
+    }
+
+    function chooseColumn(index) {
+      document.getElementById("result").textContent = "";
+      const columns = dealIntoColumns(cardSet);
+      cardSet = combineColumns(columns, index);
+      rounds++;
+      if (rounds === 3) {
+        document.getElementById("thinking").textContent = "Batman is thinking...";
+        setTimeout(() => {
+          const selectedCard = cardSet[10];
+          document.getElementById("thinking").textContent = "";
+          document.getElementById("result").textContent = `🃏 The card you thought of... is ${selectedCard}.`;
+          document.getElementById("play-again").style.display = "flex";
+        }, 2500);
+      } else {
+        renderCards();
+      }
+    }
+
+    function startOver() {
+      shuffleAndStart();
+    }
+
+    shuffleAndStart();
+  </script>
+</body>
+</html>
